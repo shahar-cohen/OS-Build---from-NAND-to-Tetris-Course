@@ -1,0 +1,81 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * A library of functions for displaying graphics on the screen.
+ * The Hack physical screen consists of 512 rows (indexed 0..511, top to bottom)
+ * of 256 pixels each (indexed 0..255, left to right). The top left pixel on 
+ * the screen is indexed (0,0).
+ */
+class Screen {
+    static boolean is_black;
+    static Array power_of_two;
+    static Array screen_map;
+
+    /** Initializes the Screen. */
+    function void init() {
+        var int counter;
+
+        let screen_map = 16384; // init screen map to screen memory.
+
+        let is_black = true;
+
+        let power_of_two = Array.new(16);
+        let counter = 1;
+        let power_of_two[0] = 1; // 2 to the power of 0 is 1;
+
+        while ( counter < 16) { // build array of power of two.
+            let power_of_two[counter] = power_of_two[counter -1] + power_of_two[counter -1];
+        }
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int counter;
+
+        while( counter < 8192 ){
+        let screen_map[counter] = 0;
+        let counter = counter + 1;
+        }
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        let is_black = b;
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y) {
+        var int address, div, reg;
+        let div = x / 16;
+        let address = 16384 + (y * 32) + div;
+
+        let reg = twoToThe[x - (16 * div)];
+
+        if ( ~(is_black) ) {
+            let screen_map[address] = screen_map[address]  & (~reg);
+        } else {
+            let screen_map[address] = screen_map[address] | reg;
+        }
+
+        let screen_memory[address] = reg;
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     * and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+    }
+}
