@@ -1,0 +1,83 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+	static Array ram;
+
+    /** Initializes the class. */
+    function void init() {
+    	let ram = 0;
+    	let ram[2048] = 0; // init heap base - no next free block yet
+    	let ram[2049] = 14335; // length = whole heap length
+    	return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+    	return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+    	let ram[address] = value;
+    	return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+    	var Array block, prev_block;
+    	var int addr_offset;
+
+    	if (size < 1) {
+    		do Sys.error(5); // size must be positive
+    	}
+
+    	let block = 2048; // set block to start of heap.
+
+    	while (block[1] < size + 2){  // while free block size not big enough
+    		let prev_block = block;
+    		let block = block[0]; // block = next block;
+
+    		if (block = 0) { // if reached last segment (no block of right size found)
+    			do Sys.error(6); // heap overflow;
+    		}
+    	}
+
+    	if (block[1] = size + 2){ // if free size is just right;
+			let prev_block[0] = block[0]; // remove block from list
+			let block[0] = 0;  // next block points to nothing
+			let block[1] = size; // size = <block size> - <overhead size>
+			return block + 2; // return address of actual data
+    	} else { 
+    		let addr_offset = block[1] - size;
+    		let block[1] = block[1] - (size + 2); //update size of block that stays in freelist
+    		let block[addr_offset] = 0; // new block is out of free list;
+    		let block[addr_offset + 1] = size; // <new block size> = <new size>
+    		return block + addr_offset + 2; //return addr. of new block data segment (w/o overhead)
+    	}
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+    	var Array block;
+    	let block = 2048;
+
+    	while (~(block[0] = 0)){  // get last block in freelist:
+    		let block = block[0];
+    	}
+    	let block[0] =  o - 2; // prev. last block in free list now points to overhead of o;
+
+    	let block = block[0]; // let block point to new last block
+    	let block[0] = 0; // make sure last block's next address is 0
+    	return;
+    }
+}
